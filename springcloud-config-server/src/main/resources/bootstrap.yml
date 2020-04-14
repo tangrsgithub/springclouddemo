@@ -1,0 +1,5 @@
+spring:
+  #ip选择策略
+  cloud:
+    inetutils:
+      preferred-networks: 10.0
