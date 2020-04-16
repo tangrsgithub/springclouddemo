@@ -1,0 +1,153 @@
+server:
+  port: 8095
+
+# 最佳实践：springcloud应用都要指定application.name
+spring:
+  application:
+    name: springcloud-gateway-helloworld
+  profiles: # 这里指定应用哪个profile，对应下面的spring.profiles
+#    active: path_route
+#    active: after_route
+#    active: before_route
+#    active: between_route
+#    active: cookie_route
+    active: header_route
+#    active: host_route
+#    active: method_route
+#    active: query_route
+#    active: prefixPath_route
+
+# 指定fallbackcommand这个command的超时时间。用于下面的hystrix测试
+hystrix:
+  command:
+    fallbackcommand:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 1000
+
+--- # 三个减号的意思是在一个文件中编写多个配置，通过spring.profiles.active指定应用哪个配置
+# Path--请求路径
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: path_route
+          uri: http://httpbin.org:80/
+          predicates:
+            - Path=/get
+  profiles: path_route
+
+--- # After--请求时间
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: after_route
+          uri: http://httpbin.org:80/get # 这里后面的get没有生效，生效的只是前面的host: httpbin.org
+          predicates:
+            - After=2020-04-15T00:00:00.129+08:00[Asia/Shanghai]
+  profiles: after_route
+
+--- # Before--请求时间
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: before_route
+          uri: http://example.org
+          predicates:
+            - Before=2020-01-20T17:42:47.789-08:00[Asia/Shanghai]
+  profiles: before_route
+
+--- # between--请求时间
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: between_route
+          uri: http://example.org
+          predicates:
+            - Between=2020-01-20T17:42:47.789-08:00[Asia/Shanghai], 2020-04-15T00:00:00.129+08:00[Asia/Shanghai]
+  profiles: between_route
+
+--- # cookie--需要有对应键值对
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: cookie_route
+          uri: http://httpbin.org:80/get
+          predicates:
+            - Cookie=name, trs
+  profiles: cookie_route
+
+--- # header--需要有对应键值对
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: header_route
+          uri: http://httpbin.org:80/
+          predicates:
+            - Header=X-Request-Id, \d+
+            - Header=name, trs
+          filters:
+            - RemoveRequestHeader=X-Request-Foo  # 将header中的参数移除
+            - RewritePath=/foo/(?<segment>.*), /$\{segment}  # URL重写（允许使用正则表达式）
+  profiles: header_route
+
+--- #Host匹配
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: host_route
+          uri: http://httpbin.org:80/
+          predicates:
+            - Host=*.trs.com
+  profiles: host_route
+
+--- # get方法都会被转发
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: method_route
+          uri: http://httpbin.org:80/
+          predicates:
+            - Method=GET
+  profiles: method_route
+
+--- # Query接收两个参数，一个是参数名[必填]，一个是参数值[选填]。
+    # 如果参数值不填，表示请求参数中保护指定key的参数即可，如果填了参数值，则不仅要包含key，其值还要与指定的value相同。
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: query_route
+          uri: http://httpbin.org:80/
+          predicates:
+            - Query=foo, abc
+          filters:
+            - AddRequestHeader=X-Request-Foo, Bar
+            - AddRequestParameter=age, 10 #追加请求参数
+            - name: Hystrix # 这里就是指定了 HystrixGatewayFilterFactory 这个过滤器工厂。下面是该工厂的参数
+              args:
+                name: fallbackcommand
+                fallbackUri: forward:/fallback
+  profiles: query_route
+
+--- # prefixPath_route 添加访问前缀
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: prefixPath_route
+          uri: http://127.0.0.1:8095/
+          predicates:
+            - Query=foo, abc
+          filters:
+            - PrefixPath=/hello
+            - RedirectTo=302, http://127.0.0.1:8095/hello/b # 执行完请求后重定向到b
+  profiles: prefixPath_route
