@@ -1,0 +1,32 @@
+server:
+  port: 8091
+
+# 服务与服务之间相互调用一般都是根据这个name 。
+spring:
+  application:
+    name: springcloud-config-server
+  cloud:
+    config:
+      server:
+        git:
+          #git仓库的地址
+          uri: https://github.com/tangrongsheng/springclouddemo
+          # 配置仓库路径，这里是文件夹搜索路径
+#          searchPaths: mySpringCloudConfig
+          # git仓库的用户名和密码，如果是public仓库，可以不写
+#          username:
+#          password:
+          # 指定分支，不指定默认是master
+          default-label: master
+          search-paths: mySpringCloudConfig
+eureka:
+  client:
+    serviceUrl:
+      #      指定服务注册中心的地址
+      defaultZone: http://localhost:8080/eureka/
+
+  # 心跳检测检测与续约时间
+  # 【测试】时将值设置设置小些，保证服务关闭后注册中心能及时踢出服务
+  instance:
+    lease-renewal-interval-in-seconds: 1   # 每间隔1s，向服务端发送一次心跳，证明自己依然”存活“
+    lease-expiration-duration-in-seconds: 2 #告诉服务端，如果我2s之内没有给你发心跳，就代表我“死”了，将我踢出掉。

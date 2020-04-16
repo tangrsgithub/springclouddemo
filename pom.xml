@@ -24,6 +24,10 @@
         <module>springcloud-eureka-serviceconsumer-feign</module>
         <module>springcloud-config-server</module>
         <module>springcloud-config-client</module>
+        <module>springcloud-config-server-autorefresh</module>
+        <module>springcloud-config-client-autorefresh</module>
+        <module>springcloud-eureka-server-cluster</module>
+        <module>springcloud-gateway-helloworld</module>
     </modules>
 
     <dependencyManagement>

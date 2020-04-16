@@ -1,0 +1,27 @@
+server:
+  port: 8092
+
+spring:
+  application:
+    name: springcloud-config-client
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+  cloud:
+    bus:
+      enabled: true
+      trace:
+        enabled: true
+
+#配置actuator
+# 1.X版本的springboot 配置： management.security.enabled=false  已经作废
+management:
+  endpoints:
+    web:
+      exposure:
+        include: bus-refresh,health,info # 2.X 版本的配置方式。默认只有health,info，这里需要将refresh添加上【手动刷新使用的是refresh，使用消息总线则是bus-refresh】
+  endpoint:
+    health:
+      show-details: always
